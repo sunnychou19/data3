@@ -1,0 +1,122 @@
+---
+title: "Data III"
+author: "S"
+date: "1/25/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+## Reading data (40 points)
+
+First, we need to read the data into R. For this assignment, I ask you to use data from the youth self-completion questionnaire (completed by children between 10 and 15 years old) from Wave 9 of the Understanding Society. It is one of the files you have downloaded as part of SN6614 from the UK Data Service. To help you find and understand this file you will need the following documents:
+
+1) The Understanding Society Waves 1-9 User Guide: https://www.understandingsociety.ac.uk/sites/default/files/downloads/documentation/mainstage/user-guides/mainstage-user-guide.pdf
+2) The youth self-completion questionnaire from Wave 9: https://www.understandingsociety.ac.uk/sites/default/files/downloads/documentation/mainstage/questionnaire/wave-9/w9-gb-youth-self-completion-questionnaire.pdf
+3) The codebook for the file: https://www.understandingsociety.ac.uk/documentation/mainstage/dataset-documentation/datafile/youth/wave/9
+
+
+```{r}
+library(tidyverse)
+# This attaches the tidyverse package. If you get an error here you need to install the package first. 
+Data <- read_tsv("C:/Users/user/Desktop/data/UKDA-6614-tab/tab/ukhls_w9/i_youth.tab")
+# You need to add between the quotation marks a full path to the required file on your computer.
+```
+
+## Tabulate variables (10 points)
+
+In the survey children were asked the following question: "Do you have a social media profile or account on any sites or apps?". In this assignment we want to explore how the probability of having an account on social media depends on children's age and gender.
+
+Tabulate three variables: children's gender, age (please use derived variables) and having an account on social media.
+
+```{r}
+# add your code here
+
+yg<-Data$i_sex #Creates new varibale
+yage<-2018-Data$i_ypdoby #Creates new derived varibale
+ysma<-Data$i_ypsocweb #Creates new varibale
+ysma[ysma==-9]<- NA #Omits NA
+q1<-na.omit(cbind(yg,yage,ysma)) #Omits NA and creates new dataset
+q1<-as.data.frame(q1) 
+table(q1) #Tabulation
+
+```
+
+## Recode variables (10 points)
+
+We want to create a new binary variable for having an account on social media so that 1 means "yes", 0 means "no", and all missing values are coded as NA. We also want to recode gender into a new variable with the values "male" and "female" (this can be a character vector or a factor).
+
+```{r}
+
+newysma<-Data$i_ypsocweb #Creates new variable
+newysma[newysma == -9] <- NA #Coding NAs
+summary(newysma) #Checking
+newysma[newysma == 2]<- 0
+table(newysma) #Checking
+newysma<-as.integer(newysma)
+table(newysma) #Checking
+
+```
+
+```{r}
+gender<-Data$i_ypsex
+gender[gender==1]<-'male'
+gender[gender==2]<-'female'
+table(gender)#Present results
+```
+
+## Calculate means (10 points)
+
+Produce code that calculates probabilities of having an account on social media (i.e. the mean of your new binary variable produced in the previous problem) by age and gender. 
+
+```{r}
+q4<-na.omit(cbind(gender,yage,newysma))  #Creating dataset
+q4<-as.data.frame(q4)  #Creating dataset
+table(q4$newysma) #Checking
+prop.table(table(q4$newysma == 1,q4$gender)) #By gender
+
+```
+``` {r}
+prop.table(table(q4$newysma == 1,q4$yage)) #By age
+```
+
+## Write short interpretation (10 points)
+
+Females have a 42% of probability of having a social media account while males have 39.1%, the differences do not seem to be significant. Whereas the presence of social media accounts has a rising trend from 9 to 15 and declines afterwards.
+
+
+
+## Visualise results (20 points)
+
+Create a statistical graph (only one, but it can be faceted) illustrating your results (i.e. showing how the probability of having an account on social media changes with age and gender). Which type of statistical graph would be most appropriate for this?
+
+```{r}
+prop.table(table(q4$newysma == 1,q4$yage,q4$gender))
+pr<-c(0.0003562522, 0.0163876024, 0.0716066975, 0.1125757036, 0.1396508728, 0.1571072319, 0.1610260064, 0.1143569647, 0.0381189882)
+age<- c(9:17)
+m<-c(0.0003562522, 0.0067687923, 0.0309939437, 0.0541503384, 0.0708941931, 0.0726754542, 0.0769504809, 0.0573566085, 0.0206626291 )
+f <- c(0.0000000000, 0.0096188101, 0.0406127538, 0.0584253652, 0.0687566797, 0.0844317777, 0.0840755255, 0.0570003563, 0.0174563591 )
+
+class(prage$m)
+
+prage<-cbind(pr,age,m,f)
+prage<-as.data.frame(prage)
+
+plot(prage$age,prage$pr,type = "l", pch = 1, xlab = 'Age', ylab = 'Probability', main = 'Probability of Having Social Media Account with Age and Gender') +
+  
+lines(x= prage$age, y = prage$m, col="blue") +
+  
+lines(x= prage$age, y = prage$f, col="red") +
+
+legend("topleft", legend=c('Combined', "male", "female"),
+       col=c('black',"blue", "red"), lty = 1:1:1, cex=0.8)
+
+
+       
+```
+
+
+
